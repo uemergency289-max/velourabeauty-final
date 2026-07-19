@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProductCategory {
+  SKINCARE
+  MAKEUP
+  HAIRCARE
+  BODY_CARE
+  FRAGRANCE
+  BEAUTY_TOOLS
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String?
+  role         Role     @default(CUSTOMER)
+  phone        String?
+  createdAt    DateTime @default(now())
+}
+
+model Product {
+  id           String           @id @default(cuid())
+  sku          String           @unique
+  slug         String           @unique
+  name         String
+  brand        String           @default("Velourabeauty")
+  category     ProductCategory
+  subcategory  String?
+  price        Decimal          @db.Decimal(10, 2)
+  oldPrice     Decimal?         @db.Decimal(10, 2)
+  currency     String           @default("USD")
+  stock        Int              @default(0)
+  description  String           @db.Text
+  benefits     String[]
+  ingredients  String[]
+  usage        String[]
+  tags         String[]
+  isPublished  Boolean          @default(true)
+  isBestseller Boolean          @default(false)
+  isNew        Boolean          @default(true)
+  images       ProductImage[]
+  variants     ProductVariant[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  position  Int     @default(0)
+}
+
+model ProductVariant {
+  id            String  @id @default(cuid())
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label         String
+  priceModifier Decimal @default(0) @db.Decimal(10, 2)
+  stock         Int     @default(0)
+  sku           String  @unique
+}
